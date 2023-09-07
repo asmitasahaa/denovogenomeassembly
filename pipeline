@@ -1,0 +1,103 @@
+1. Quality control 
+
+# Quality check of Illumina sequences 
+fastqc /path/to/sample_R1.fastq -o sample_R1_FastQCresults 
+fastqc /path/to/sample_R2.fastq -o sample_R2_FastQCresults 
+
+# Quality check of Nanopore sequence 
+fastqc /path/to/ONT_read.fastq -o ONT_read_FastQCresults 
+
+2. Trimming adapters and low quality sequences 
+
+# Run fastp on Illumina sequences 
+fastp -i /path/to/sample_R1.fastq -I /path/to/sample_R2.fastq -o trimmed_R1.fastq -O trimmed_R2.fastq 
+
+# Run fastp on ONT sequence 
+fastp /path/to/ONT_read.fastq -o trimmed_ONT.fastq 
+
+# Run QC again to check and trim again if needed 
+
+3. Dereplicate and subsample Illumina sequences 
+
+# Make text file and open it 
+touch input_file.txt 
+
+nano input_file.txt 
+
+# Add full path of the sequences to the file 
+
+# Run FastUniq 
+fastuniq -i input_file.txt -t q -o dereplicated_R1.fastq -p dereplicated_R2.fastq 
+
+# Run seqtk to subsample 
+seqtk sample -s <set seed number> /path/to/dereplicated_R1.fastq <add decimal indication of proportion here> > sample_R1.fastq 
+
+seqtk sample -s <set seed number> /path/to/dereplicated_R2.fastq <add decimal indication of proportion here> > sample_R2.fastq 
+
+4. Trim and filter ONT sequence 
+
+# Use Nanofilt 
+gunzip -c /path/to/ONT_read.fastq.gz | NanoFilt -q <add the Phred score quality you want for reads to be removed here> -l <add the number of base pair less than you want to remove here> | gzip > ONT_trimmed_and_filtered.fastq.gz 
+
+# You can generate the plot using NanoPlot 
+
+5. Assembly methods 
+
+5.1. SPAdes 
+
+# SPAdes can only be used for short reads 
+spades.py --pe1-1 /path/to/sample_R1.fastq.gz --pe1-2 /path/to/sample_R@.fastq.gz -o <insert output directory here>  
+
+5.2. Unicycler 
+
+# Short read assembly  
+unicycler -1 /path/to/sample_R1.fastq.gz -2 /path/to/sample_R2.fastq.gz -o <insert output directory here> 
+
+# Long read assembly 
+unicycler -l /path/to/ONT_read.fastq.gz -o <insert output directory here> 
+
+# Hybrid assembly 
+unicycler -1 /path/to/sample_R1.fastq.gz -2 /path/to/sample_R2.fastq.gz -l /path/to/ONT_read.fastq.gz -o <insert output directory here> 
+
+5.3. Raven 
+
+# Raven can only be used for long read assembly 
+raven -t <add number of threads here> -p <add name of output file> /path/to/ONT_read.fastq.gz 
+
+5.4. Flye 
+
+# Flye only supports Oxford Nanopore or PacBio sequencing, hence it’s a long-read assembly method 
+flye --nano-raw /path/to/ONT_read.fastq.gz --out-dir <insert out directory name here> --threads <insert number of threads here> 
+
+5.5. MaSuRCA 
+
+# Run hybrid assembly 
+masurca -t <insert number of threads here> -i /path/to/sample_R1.fastq, /path/to/sample_R2.fastq -r /path/to/ONT_read.fastq.gz 
+
+6. Viewing 
+
+# Use PROKKA to annotate the genome assemblies using SPAdes 
+prokka contigs.fasta --centre XXX --prefix <add outdirectory name here> 
+
+# Use PROKKA to annotate other genome assemblies 
+prokka contigs.fasta --outdir <add outdirectory name here> 
+
+7. Annotation 
+
+# View each assembly using Bandage 
+Bandage load <insert file name here in .gfa format> --draw 
+
+8. Comparison 
+
+# Download the reference genome in FASTA format and the genome annotation in gff format from NCBI 
+
+# Gunzip fna and gff file 
+gunzip reference.fna.gz 
+
+gunzip reference.gff.gz 
+
+# Run QUAST 
+quast --glimmer -r /path/to/reference.fna --genes /path/to/reference.gff /path/to/first_assembly.fasta /path/to/second_assembly.fasta -o <add output directory name here> 
+
+# Note: QUAST can include more than 2 assemblies 
+
