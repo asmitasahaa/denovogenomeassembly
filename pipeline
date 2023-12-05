@@ -74,7 +74,7 @@ flye --nano-raw /path/to/ONT_read.fastq.gz --out-dir <insert out directory name 
 # Run hybrid assembly 
 masurca -t <insert number of threads here> -i /path/to/sample_R1.fastq, /path/to/sample_R2.fastq -r /path/to/ONT_read.fastq.gz 
 
-6. Viewing 
+6. Annotation  
 
 # Use PROKKA to annotate the genome assemblies using SPAdes 
 prokka contigs.fasta --centre XXX --prefix <add outdirectory name here> 
@@ -82,7 +82,7 @@ prokka contigs.fasta --centre XXX --prefix <add outdirectory name here>
 # Use PROKKA to annotate other genome assemblies 
 prokka contigs.fasta --outdir <add outdirectory name here> 
 
-7. Annotation 
+7. Viewing  
 
 # View each assembly using Bandage 
 Bandage load <insert file name here in .gfa format> --draw 
